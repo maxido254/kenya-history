@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kenyan History Library</title>
+  <meta name="theme-color" content="#006600">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Kenyan History Library</h1>
+    <p>Free books on Kenya's history, shared with the permission of authors and publishers.</p>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search title, author, topic..." aria-label="Search books">
+      <select id="topic" aria-label="Filter by topic"><option value="">All topics</option></select>
+      <label class="check"><input id="savedOnly" type="checkbox"> Saved offline only</label>
+    </div>
+  </header>
+
+  <main>
+    <p id="status" role="status"></p>
+    <section id="grid" class="grid"></section>
+  </main>
+
+  <div id="reader" class="reader" hidden>
+    <div class="reader-bar">
+      <button id="closeReader">&larr; Back</button>
+      <span id="readerTitle"></span>
+      <a id="downloadLink" download>Download</a>
+    </div>
+    <iframe id="readerFrame" title="Book reader"></iframe>
+  </div>
+
+  <footer>
+    <p>Each book is shared with permission from the rights holder shown on its card.
+       Rights holders who want a title removed can contact the site owner.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
