@@ -40,3 +40,6 @@ Run `python3 -m http.server 8000` in this folder and open http://localhost:8000.
 
 ## Takedown
 If a rights holder asks for a title to be removed, delete its entry from `books.json` and its file from `books/`.
+
+## Linking to a free copy instead of hosting the PDF
+If a book is already free online (an open-access library or the publisher's site), leave out `file` and add `"link": "https://..."` instead. The card then shows an "Open free copy" button.
