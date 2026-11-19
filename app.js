@@ -23,7 +23,7 @@ async function init() {
 }
 
 async function isSaved(file) {
-  if (!("caches" in window)) return false;
+  if (!file || !("caches" in window)) return false;
   const c = await caches.open(CACHE_BOOKS);
   return !!(await c.match(file));
 }
@@ -68,22 +68,31 @@ function card(b, saved) {
   c.appendChild(el("div", "permission", `Shared with permission from ${b.permission_from} · ${b.license}`));
 
   const actions = el("div", "actions");
-  const read = el("button", "", "Read");
-  read.onclick = () => openReader(b);
-  const save = el("button", "secondary", saved ? "Saved offline ✓" : "Save offline");
-  save.onclick = async () => {
-    save.disabled = true;
-    save.textContent = saved ? "Removing..." : "Saving...";
-    try {
-      const cache = await caches.open(CACHE_BOOKS);
-      if (saved) await cache.delete(b.file);
-      else await cache.add(b.file);
-    } catch (e) {
-      alert("Could not save this book offline.");
-    }
-    render();
-  };
-  actions.append(read, save);
+  if (!b.file && b.link) {
+    // Free copy hosted by the rights holder or an open-access library
+    const open = el("a", "btn", "Open free copy ↗");
+    open.href = b.link;
+    open.target = "_blank";
+    open.rel = "noopener";
+    actions.append(open);
+  } else {
+    const read = el("button", "", "Read");
+    read.onclick = () => openReader(b);
+    const save = el("button", "secondary", saved ? "Saved offline ✓" : "Save offline");
+    save.onclick = async () => {
+      save.disabled = true;
+      save.textContent = saved ? "Removing..." : "Saving...";
+      try {
+        const cache = await caches.open(CACHE_BOOKS);
+        if (saved) await cache.delete(b.file);
+        else await cache.add(b.file);
+      } catch (e) {
+        alert("Could not save this book offline.");
+      }
+      render();
+    };
+    actions.append(read, save);
+  }
   c.appendChild(actions);
   return c;
 }

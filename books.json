@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "title": "Report of the Truth, Justice and Reconciliation Commission",
+    "author": "Truth, Justice and Reconciliation Commission of Kenya",
+    "year": 2013,
+    "description": "The final report of Kenya's truth commission, in several volumes, on historical injustices and human rights violations.",
+    "topics": ["Human rights and transitional justice"],
+    "link": "https://digitalcommons.law.seattleu.edu/tjrc-core/",
+    "permission_from": "Truth, Justice and Reconciliation Commission of Kenya",
+    "license": "May be reproduced with attribution for non-commercial educational use"
+  },
+  {
+    "title": "Conservation of Natural and Cultural Heritage in Kenya",
+    "author": "Anne-Marie Deisser and Mugwima Njuguna (eds)",
+    "description": "An open-access, cross-disciplinary book on caring for Kenya's natural and cultural heritage.",
+    "topics": ["Pre-colonial and early history"],
+    "link": "https://library.oapen.org/bitstream/20.500.12657/32071/1/617922.pdf",
+    "permission_from": "UCL Press (open access)",
+    "license": "CC BY-NC-ND"
+  },
+  {
+    "title": "Education in the Republic of Kenya",
+    "author": "James R. Sheffield",
+    "year": 1971,
+    "description": "A study of education in Kenya in the years after independence.",
+    "topics": ["Independence and post-independence"],
+    "link": "https://africacommons.net/artifacts/3066534/education-in-the-republic-of-kenya",
+    "permission_from": "Public domain",
+    "license": "Public domain (HathiTrust)"
+  }
+]
