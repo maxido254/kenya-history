@@ -1,0 +1,81 @@
+name: Unzip and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Unzip the app
+        run: |
+          mkdir -p site
+          found=0
+          for z in *.zip; do
+            if [ -e "$z" ]; then
+              echo "Unzipping $z"
+              unzip -q -o "$z" -d site
+              found=1
+            fi
+          done
+          # No zip uploaded: use the files in the repo root instead
+          if [ "$found" = "0" ]; then
+            echo "No zip found, using repo root files"
+            for f in index.html styles.css app.js sw.js manifest.json books.json; do
+              [ -e "$f" ] && cp "$f" site/
+            done
+          fi
+          # If the zip had a top-level folder, move its contents up
+          if [ ! -f site/index.html ]; then
+            idx=$(find site -name index.html | head -n 1)
+            if [ -n "$idx" ]; then
+              dir=$(dirname "$idx")
+              cp -r "$dir"/. site/
+            fi
+          fi
+          # PDFs uploaded straight to the repo's books/ folder are included too
+          if [ -d books ]; then
+            mkdir -p site/books
+            cp -r books/. site/books/
+          fi
+          # A books.json edited in the repo root replaces the one inside the zip
+          if [ -f books.json ]; then
+            cp books.json site/books.json
+          fi
+          touch site/.nojekyll
+
+      - name: Check the app
+        run: |
+          test -f site/index.html || { echo "index.html is missing"; exit 1; }
+          python3 -c "import json; json.load(open('site/books.json')); print('books.json is valid')"
+          echo "Files in site:"
+          find site -type f | sort
+
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
