@@ -1,0 +1,55 @@
+name: Build Android app
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Collect the web app into www
+        run: |
+          mkdir -p www
+          for f in index.html styles.css app.js sw.js manifest.json books.json icon-192.png icon-512.png; do
+            [ -e "$f" ] && cp "$f" www/
+          done
+          if [ -d books ]; then
+            mkdir -p www/books
+            cp -r books/. www/books/
+          fi
+
+      - name: Install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Create the Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Build the APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kenya-history-android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
