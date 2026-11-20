@@ -2,7 +2,7 @@ const SHELL = "kh-shell-v2";
 const RUNTIME = "kh-runtime-v2";
 const ASSETS = [
   "./", "index.html", "styles.css", "app.js", "pdf.js", "manifest.json", "books.json",
-  "flag.svg", "shield.svg", "emblem.svg", "icon-192.png", "icon-512.png"
+  "africa.svg", "emblem.svg", "icon-192.png", "icon-512.png"
 ];
 
 self.addEventListener("install", (e) => {

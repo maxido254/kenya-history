@@ -1,6 +1,6 @@
-# Kenya History Library
+# African History
 
-A free reading app for Kenyan history. Books open and are read inside the app, in chapters, with adjustable text size and a night mode. Every book can be downloaded as a PDF.
+A free reading app for African history, starting with Kenya. Books open and are read inside the app, in chapters, with adjustable text size and a night mode. Every book can be downloaded as a PDF.
 
 ## Add a book
 1. Put the book's text in `books/<name>.json`:
