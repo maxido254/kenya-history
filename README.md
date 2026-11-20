@@ -31,7 +31,7 @@ A free reading app for Kenyan history. Books open and are read inside the app, i
 }
 ```
 
-Entries without `permission_from` and `license` are not shown. For a book that is already free online, leave out `text` and use `"link": "https://..."` instead.
+Entries without `text`, `permission_from` and `license` are not shown. Every book is read and downloaded inside the app; the app never sends readers to another website.
 
 ## Logo
 Put a square image named `logo.png` in the repo root and it replaces the default emblem in the header.
