@@ -1,33 +1,41 @@
-const SHELL = "kh-shell-v1";
-const BOOKS = "kh-books-v1";
-const ASSETS = ["./", "index.html", "styles.css", "app.js", "manifest.json", "books.json"];
+const SHELL = "kh-shell-v2";
+const RUNTIME = "kh-runtime-v2";
+const ASSETS = [
+  "./", "index.html", "styles.css", "app.js", "pdf.js", "manifest.json", "books.json",
+  "flag.svg", "shield.svg", "emblem.svg", "icon-192.png", "icon-512.png"
+];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(SHELL).then((c) => Promise.all(ASSETS.map((a) => c.add(a).catch(() => {}))))
+  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== SHELL && k !== BOOKS).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== SHELL && k !== RUNTIME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
+// Network first, so updates show up; anything already opened still works offline.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+  const req = e.request;
+  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    caches.match(e.request).then((hit) =>
-      hit ||
-      fetch(e.request).then((res) => {
-        if (res.ok && new URL(e.request.url).origin === location.origin && !e.request.url.endsWith(".pdf")) {
+    fetch(req)
+      .then((res) => {
+        if (res.ok) {
           const copy = res.clone();
-          caches.open(SHELL).then((c) => c.put(e.request, copy));
+          caches.open(RUNTIME).then((c) => c.put(req, copy));
         }
         return res;
-      }).catch(() => caches.match("index.html"))
-    )
+      })
+      .catch(() =>
+        caches.match(req).then((hit) => hit || (req.mode === "navigate" ? caches.match("index.html") : undefined))
+      )
   );
 });

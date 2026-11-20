@@ -1,5 +1,15 @@
 [
   {
+    "id": "kenya-in-brief",
+    "title": "Kenya in Brief",
+    "author": "Kenya History Library",
+    "description": "A short, plain-language history of Kenya from early times to the present, written for this library.",
+    "topics": ["Overview"],
+    "text": "books/kenya-in-brief.json",
+    "permission_from": "The Kenya History Library (original text)",
+    "license": "Free to read and share"
+  },
+  {
     "title": "Report of the Truth, Justice and Reconciliation Commission",
     "author": "Truth, Justice and Reconciliation Commission of Kenya",
     "year": 2013,
