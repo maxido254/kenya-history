@@ -2,42 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kenyan History Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kenya History Library</title>
   <meta name="theme-color" content="#006600">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Kenyan History Library</h1>
-    <p>Free books on Kenya's history, shared with the permission of authors and publishers.</p>
-    <div class="controls">
-      <input id="search" type="search" placeholder="Search title, author, topic..." aria-label="Search books">
-      <select id="topic" aria-label="Filter by topic"><option value="">All topics</option></select>
-      <label class="check"><input id="savedOnly" type="checkbox"> Saved offline only</label>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <img id="logo" class="logo" src="logo.png" alt="" onerror="this.onerror=null;this.src='emblem.svg'">
+      <div>
+        <p class="kicker">Maktaba ya Historia ya Kenya</p>
+        <h1>Kenya History Library</h1>
+      </div>
     </div>
   </header>
 
+  <section class="tools">
+    <input id="search" type="search" placeholder="Search by title, author or subject" aria-label="Search the library">
+    <div id="filters" class="filters" role="group" aria-label="Subjects"></div>
+  </section>
+
   <main>
     <p id="status" role="status"></p>
-    <section id="grid" class="grid"></section>
+    <div id="covers" class="covers"></div>
   </main>
 
-  <div id="reader" class="reader" hidden>
-    <div class="reader-bar">
-      <button id="closeReader">&larr; Back</button>
-      <span id="readerTitle"></span>
-      <a id="downloadLink" download>Download</a>
-    </div>
-    <iframe id="readerFrame" title="Book reader"></iframe>
-  </div>
-
   <footer>
-    <p>Each book is shared with permission from the rights holder shown on its card.
-       Rights holders who want a title removed can contact the site owner.</p>
+    <p>Every text here is shared with the permission of its rights holder. Rights holders who want a title taken down can contact the site owner.</p>
   </footer>
 
+  <div id="reader" class="reader" hidden>
+    <div class="bar">
+      <button id="back" type="button">&larr; Library</button>
+      <span id="rtitle" class="title"></span>
+      <button id="chaptersBtn" type="button">Chapters</button>
+      <button id="smaller" type="button" aria-label="Smaller text">A&minus;</button>
+      <button id="larger" type="button" aria-label="Larger text">A+</button>
+      <button id="theme" type="button">Night</button>
+      <button id="pdf" type="button">Download PDF</button>
+    </div>
+    <div id="scroll"><article id="page" class="page"></article></div>
+    <div id="drawer" class="drawer" hidden>
+      <div class="drawer-panel">
+        <h3>Chapters</h3>
+        <ol id="chapterList"></ol>
+        <p id="rights" class="rights"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="pdf.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
