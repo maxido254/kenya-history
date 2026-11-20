@@ -23,5 +23,19 @@
     "permission_from": "henry holt",
     "license": "free education distribution",
     "year": 2005
+  },
+  {
+    "id": "epdf-pub-weep-not-child-african-writers",
+    "title": "epdf.pub weep not child african writers",
+    "author": "ngugi wa thiong'o",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/epdf-pub-weep-not-child-african-writers.json",
+    "permission_from": "nggi wa thiong'o",
+    "license": "freee educational purpose",
+    "updated": "2026-11-20T16:22:53.585Z",
+    "year": 1964
   }
 ]
