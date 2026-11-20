@@ -23,7 +23,8 @@ async function init() {
   applyPrefs();
   try {
     const res = await fetch("books.json", { cache: "no-cache" });
-    books = (await res.json()).filter((b) => b.permission_from && b.license);
+    // Only books that can be read inside the app are listed
+    books = (await res.json()).filter((b) => b.permission_from && b.license && b.text);
   } catch (e) {
     $("status").textContent = "The library could not be loaded. Check your connection.";
     return;
@@ -54,9 +55,7 @@ function colourFor(title) {
 }
 
 function noteFor(m) {
-  if (m.text) return "Read in the app";
-  if (m.link) return "Free copy online ↗";
-  return "Open file ↗";
+  return m.year ? String(m.year) : "Read · Download PDF";
 }
 
 function render() {
@@ -85,11 +84,6 @@ function render() {
 function posKey(m) { return "kh-pos-" + (m.id || m.title); }
 
 async function openBook(m) {
-  if (!m.text) {
-    const url = m.link || m.file;
-    if (url) window.open(url, "_blank", "noopener");
-    return;
-  }
   let data;
   try {
     const res = await fetch(m.text);
