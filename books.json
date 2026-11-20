@@ -4,9 +4,24 @@
     "title": "Kenya in Brief",
     "author": "Kenya History Library",
     "description": "A short, plain-language history of Kenya from early times to the present, written for this library.",
-    "topics": ["Overview"],
+    "topics": [
+      "Overview"
+    ],
     "text": "books/kenya-in-brief.json",
     "permission_from": "The Kenya History Library (original text)",
     "license": "Free to read and share"
+  },
+  {
+    "id": "imperial-reckoning-the-untold-story-of-britain-s-gulag-in-ke",
+    "title": "Imperial Reckoning: The Untold Story of Britain’s Gulag in Kenya",
+    "author": "Caroline Elkins",
+    "description": "britains' gulag",
+    "topics": [
+      "Independence and post-independence"
+    ],
+    "text": "books/imperial-reckoning-the-untold-story-of-britain-s-gulag-in-ke.json",
+    "permission_from": "henry holt",
+    "license": "free education distribution",
+    "year": 2005
   }
 ]
