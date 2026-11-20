@@ -63,8 +63,18 @@ async function init() {
     return;
   }
   buildFilters();
+  await refreshSaved();
   render();
   wire();
+  syncLibrary();
+  window.addEventListener("online", async () => {
+    // Internet came back: pick up the newest list, then download what is new
+    try {
+      books = (await getJSON("books.json")).filter((b) => b.permission_from && b.license && b.text);
+      buildFilters();
+    } catch (e) { /* keep the current list */ }
+    syncLibrary();
+  });
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
@@ -88,7 +98,55 @@ function colourFor(title) {
 }
 
 function noteFor(m) {
+  if (saved.has(bookKey(m))) return "Saved on this device ✓";
   return m.year ? String(m.year) : "Read · Download PDF";
+}
+
+// ---- Automatic downloads -------------------------------------------------
+// Whenever the app opens with internet, any new or changed book is fetched
+// and kept on the device, so it can be read later without a connection.
+const saved = new Set();
+const bookKey = (m) => m.id || m.title;
+const verKey = (m) => "kh-ver-" + bookKey(m);
+
+async function isCached(path) {
+  try {
+    const c = await caches.open("kh-data");
+    return !!(await c.match(LIVE + path));
+  } catch (e) { return false; }
+}
+
+async function refreshSaved() {
+  saved.clear();
+  for (const m of books) if (await isCached(m.text)) saved.add(bookKey(m));
+}
+
+let syncing = false;
+async function syncLibrary() {
+  if (syncing || !navigator.onLine) return;
+  syncing = true;
+  try {
+    const todo = [];
+    for (const m of books) {
+      let stored = null;
+      try { stored = localStorage.getItem(verKey(m)); } catch (e) { /* ignore */ }
+      if (!(await isCached(m.text)) || stored !== String(m.updated || "")) todo.push(m);
+    }
+    if (!todo.length) return;
+    let done = 0;
+    for (const m of todo) {
+      $("status").textContent = `Downloading new books… ${done} of ${todo.length}`;
+      try {
+        await getJSON(m.text);
+        try { localStorage.setItem(verKey(m), String(m.updated || "")); } catch (e) { /* ignore */ }
+      } catch (e) { /* try again next time */ }
+      done++;
+    }
+    await refreshSaved();
+    render();
+  } finally {
+    syncing = false;
+  }
 }
 
 function render() {
