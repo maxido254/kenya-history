@@ -38,7 +38,7 @@ jobs:
           # No zip uploaded: use the files in the repo root instead
           if [ "$found" = "0" ]; then
             echo "No zip found, using repo root files"
-            for f in index.html admin.html admin.js styles.css app.js pdf.js sw.js manifest.json books.json flag.svg shield.svg emblem.svg logo.png icon-192.png icon-512.png; do
+            for f in index.html admin.html admin.js styles.css app.js pdf.js sw.js manifest.json books.json africa.svg emblem.svg logo.png icon-192.png icon-512.png; do
               [ -e "$f" ] && cp "$f" site/
             done
           fi
