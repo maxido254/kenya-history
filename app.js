@@ -1,5 +1,19 @@
 const $ = (id) => document.getElementById(id);
 
+// Opening screen: shown once each time the app is opened
+(function () {
+  const splash = $("splash");
+  if (!splash) return;
+  let seen = null;
+  try { seen = sessionStorage.getItem("kh-splash"); } catch (e) { /* ignore */ }
+  if (seen) { splash.remove(); return; }
+  setTimeout(() => {
+    splash.classList.add("hide");
+    setTimeout(() => splash.remove(), 600);
+    try { sessionStorage.setItem("kh-splash", "1"); } catch (e) { /* ignore */ }
+  }, 1600);
+})();
+
 // In the Android and iOS apps the library is read from the live website, so
 // new books appear without reinstalling. In a browser it reads its own folder.
 const LIVE = "https://maxido254.github.io/kenya-history/";
@@ -279,5 +293,39 @@ function wire() {
     }
   });
 }
+
+// ---- Install prompt (browser) / home-screen hint (iPhone) ----------------
+(function () {
+  const box = $("install");
+  if (!box || IN_APP) return;
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  let dismissed = false;
+  try { dismissed = localStorage.getItem("kh-install-dismissed") === "1"; } catch (e) { /* ignore */ }
+  if (standalone || dismissed) return;
+  let deferred = null;
+  $("installClose").onclick = () => {
+    box.hidden = true;
+    try { localStorage.setItem("kh-install-dismissed", "1"); } catch (e) { /* ignore */ }
+  };
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferred = e;
+    $("installBtn").hidden = false;
+    box.hidden = false;
+  });
+  $("installBtn").onclick = async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    try { await deferred.userChoice; } catch (e) { /* ignore */ }
+    deferred = null;
+    box.hidden = true;
+  };
+  window.addEventListener("appinstalled", () => { box.hidden = true; });
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    $("installBtn").hidden = true;
+    $("installHint").textContent = "Tap the Share button, then \u201cAdd to Home Screen\u201d.";
+    box.hidden = false;
+  }
+})();
 
 init();
