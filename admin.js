@@ -100,7 +100,8 @@ $("make").addEventListener("click", async () => {
     topics: [$("topic").value],
     text: `books/${id}.json`,
     permission_from: from,
-    license: terms
+    license: terms,
+    updated: new Date().toISOString()
   };
   const year = parseInt($("year").value, 10);
   if (year) entry.year = year;
