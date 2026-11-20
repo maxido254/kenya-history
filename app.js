@@ -1,4 +1,38 @@
 const $ = (id) => document.getElementById(id);
+
+// In the Android and iOS apps the library is read from the live website, so
+// new books appear without reinstalling. In a browser it reads its own folder.
+const LIVE = "https://maxido254.github.io/kenya-history/";
+const IN_APP = !!(window.Capacitor || /^(capacitor|ionic):/.test(location.protocol) || location.hostname === "localhost" && !location.port);
+const BASE = IN_APP ? LIVE : "";
+
+// Try the live site, remember what arrived, fall back to the saved copy,
+// and finally to the copy bundled inside the app.
+async function getJSON(path) {
+  const key = LIVE + path;
+  try {
+    const res = await fetch(BASE + path, { cache: "no-cache" });
+    if (!res.ok) throw new Error("bad response");
+    const data = await res.json();
+    try {
+      const c = await caches.open("kh-data");
+      await c.put(key, new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } }));
+    } catch (e) { /* storage not available */ }
+    return data;
+  } catch (e) {
+    try {
+      const c = await caches.open("kh-data");
+      const hit = await c.match(key);
+      if (hit) return await hit.json();
+    } catch (e2) { /* ignore */ }
+    if (IN_APP) {
+      const res = await fetch(path);
+      if (res.ok) return res.json();
+    }
+    throw e;
+  }
+}
+
 let books = [];
 let topic = "All";
 let cur = null; // { m: catalogue entry, data: book text, ch: chapter index }
@@ -22,9 +56,8 @@ function el(tag, cls, text) {
 async function init() {
   applyPrefs();
   try {
-    const res = await fetch("books.json", { cache: "no-cache" });
     // Only books that can be read inside the app are listed
-    books = (await res.json()).filter((b) => b.permission_from && b.license && b.text);
+    books = (await getJSON("books.json")).filter((b) => b.permission_from && b.license && b.text);
   } catch (e) {
     $("status").textContent = "The library could not be loaded. Check your connection.";
     return;
@@ -86,9 +119,7 @@ function posKey(m) { return "kh-pos-" + (m.id || m.title); }
 async function openBook(m) {
   let data;
   try {
-    const res = await fetch(m.text);
-    if (!res.ok) throw new Error("bad response");
-    data = await res.json();
+    data = await getJSON(m.text);
   } catch (e) {
     alert("This book is not available offline yet. Connect to the internet and open it once.");
     return;
