@@ -42,6 +42,11 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Use the library logo as the app icon
+        run: |
+          npx --yes @capacitor/assets generate --android \
+            --iconBackgroundColor '#fbf3de' --iconBackgroundColorDark '#fbf3de'
+
       - name: Build the APK
         working-directory: android
         run: |

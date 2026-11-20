@@ -3,7 +3,7 @@
   "short_name": "Kenya History",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#faf8f3",
+  "background_color": "#fbf3de",
   "theme_color": "#006600",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
