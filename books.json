@@ -51,5 +51,19 @@
     "license": "freee educational purpose",
     "updated": "2026-11-20T16:25:50.841Z",
     "year": 1964
+  },
+  {
+    "id": "a-grain-of-wheat-ngugi-wa-thiongo",
+    "title": "a grain of wheat ngugi wa thiongo",
+    "author": "ngugi wa thiong'o",
+    "description": "",
+    "topics": [
+      "Independence and post-independence"
+    ],
+    "text": "books/a-grain-of-wheat-ngugi-wa-thiongo.json",
+    "permission_from": "ngugi wa thiong'o",
+    "license": "freee educational purpose",
+    "updated": "2026-11-21T06:00:50.137Z",
+    "year": 1964
   }
 ]
