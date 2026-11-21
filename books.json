@@ -13,7 +13,7 @@
   },
   {
     "id": "imperial-reckoning-the-untold-story-of-britain-s-gulag-in-ke",
-    "title": "Imperial Reckoning: The Untold Story of Britain\u2019s Gulag in Kenya",
+    "title": "Imperial Reckoning: The Untold Story of Britain’s Gulag in Kenya",
     "author": "Caroline Elkins",
     "description": "britains' gulag",
     "topics": [
@@ -23,5 +23,89 @@
     "permission_from": "henry holt",
     "license": "free education distribution",
     "year": 2005
+  },
+  {
+    "id": "weep-not-child",
+    "title": "weep not child",
+    "author": "ngugi  thiong'o",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/weep-not-child.json",
+    "permission_from": "ngugi  thiong'o",
+    "license": "free educational copies",
+    "updated": "2026-11-21T09:27:43.215Z",
+    "year": 1964
+  },
+  {
+    "id": "a-grain-of-wheat",
+    "title": "a grain of wheat",
+    "author": "ngugi wa thiong'o",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/a-grain-of-wheat.json",
+    "permission_from": "ngugi wa thiong\"o",
+    "license": "free educational copies",
+    "updated": "2026-11-21T09:27:43.228Z",
+    "year": 1951
+  },
+  {
+    "id": "things-fall-apart",
+    "title": "Things Fall Apart",
+    "author": "Chinua Achebe",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/things-fall-apart.json",
+    "permission_from": "Chinua Achebe",
+    "license": "free educational copies",
+    "updated": "2026-11-21T09:27:43.239Z",
+    "year": 1959
+  },
+  {
+    "id": "half-of-a-yellow-sun",
+    "title": "half of a yellow sun",
+    "author": "chimamanda ngozi adichie",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/half-of-a-yellow-sun.json",
+    "permission_from": "chimamanda ngozi adichie",
+    "license": "free educational copies",
+    "updated": "2026-11-21T09:27:43.246Z",
+    "year": 2006
+  },
+  {
+    "id": "season-of-migration-to-the-north-pdf",
+    "title": "Season of Migration to the North pdf",
+    "author": "TAYEB SALIH",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/season-of-migration-to-the-north-pdf.json",
+    "permission_from": "TAYEB SALIH",
+    "license": "free educational copies",
+    "updated": "2026-11-21T09:27:43.278Z",
+    "year": 1955
+  },
+  {
+    "id": "sozaboy",
+    "title": "Sozaboy",
+    "author": "Saro wiwa",
+    "description": "",
+    "topics": [
+      "Overview"
+    ],
+    "text": "books/sozaboy.json",
+    "permission_from": "Saro wiwa",
+    "license": "free educational copies",
+    "updated": "2026-11-21T09:27:43.289Z",
+    "year": 1985
   }
 ]
