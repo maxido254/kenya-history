@@ -71,6 +71,22 @@
   </div>
 
   <hr style="margin:2.4rem 0;border:0;border-top:1px solid var(--rule)">
+  <h1>Change a cover</h1>
+  <p>Add or replace the cover picture of a book that is already in the library.</p>
+  <button id="loadCov" class="btn" type="button">Load the current library</button>
+  <div id="covForm" hidden>
+    <label>Book<select id="covBook"></select></label>
+    <label>Cover picture<input id="covFile" type="file" accept="image/*"></label>
+    <div class="row"><button id="makeCov" class="go" type="button">Make the cover files</button></div>
+  </div>
+  <p id="covMsg" class="err" role="alert"></p>
+  <div id="covOut" class="out" hidden>
+    <p id="covSummary"></p>
+    <p><a id="dl-cov" class="dl" href="#">Download everything (zip)</a></p>
+    <p class="hint">Unzip it and upload the <b>books</b> folder and <b>books.json</b> to the repo, the same way as when adding books.</p>
+  </div>
+
+  <hr style="margin:2.4rem 0;border:0;border-top:1px solid var(--rule)">
   <h1>Remove books</h1>
   <p>Take books off the library. Phones that already saved them clear them the next time they open the app.</p>
   <button id="loadList" class="btn" type="button">Load the current library</button>
@@ -100,6 +116,10 @@
     <label>Or paste the text here
       <textarea class="f-text" placeholder="Paste the book text here"></textarea>
     </label>
+    <label>Cover picture (optional)
+      <input class="f-cover" type="file" accept="image/*">
+    </label>
+    <p class="hint">Any photo or scan. It is cropped to a book shape and made small for you.</p>
     <label>Title<input class="f-title" type="text"></label>
     <label>Author<input class="f-author" type="text"></label>
     <label>Year (optional)<input class="f-year" type="number" min="1000" max="2100"></label>
