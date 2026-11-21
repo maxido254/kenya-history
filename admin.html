@@ -71,14 +71,11 @@
   </div>
 
   <hr style="margin:2.4rem 0;border:0;border-top:1px solid var(--rule)">
-  <h1>Change a cover</h1>
-  <p>Add or replace the cover picture of a book that is already in the library.</p>
+  <h1>Book pictures</h1>
+  <p>Add or change the cover picture of any book in the library, all in one go. Pick a picture next to each book you want to change, then make the files.</p>
   <button id="loadCov" class="btn" type="button">Load the current library</button>
-  <div id="covForm" hidden>
-    <label>Book<select id="covBook"></select></label>
-    <label>Cover picture<input id="covFile" type="file" accept="image/*"></label>
-    <div class="row"><button id="makeCov" class="go" type="button">Make the cover files</button></div>
-  </div>
+  <div id="covList"></div>
+  <button id="makeCov" class="go" type="button" hidden>Make the picture files</button>
   <p id="covMsg" class="err" role="alert"></p>
   <div id="covOut" class="out" hidden>
     <p id="covSummary"></p>
