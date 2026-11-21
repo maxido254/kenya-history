@@ -135,11 +135,32 @@ async function refreshSaved() {
   for (const m of books) if (await isCached(m.text)) saved.add(bookKey(m));
 }
 
+// Books taken off the list are also removed from the device
+async function pruneCache() {
+  try {
+    const c = await caches.open("kh-data");
+    const keep = new Set(books.map((m) => LIVE + m.text));
+    keep.add(LIVE + "books.json");
+    for (const req of await c.keys()) {
+      if (req.url.startsWith(LIVE + "books/") && !keep.has(req.url)) await c.delete(req);
+    }
+    try {
+      const listed = new Set(books.map(bookKey));
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith("kh-ver-") && !listed.has(k.slice(7))) localStorage.removeItem(k);
+        if (k.startsWith("kh-pos-") && !listed.has(k.slice(7))) localStorage.removeItem(k);
+      });
+    } catch (e) { /* ignore */ }
+  } catch (e) { /* ignore */ }
+}
+
 let syncing = false;
 async function syncLibrary() {
   if (syncing || !navigator.onLine) return;
   syncing = true;
   try {
+    await pruneCache();
+    await refreshSaved();
     const todo = [];
     for (const m of books) {
       let stored = null;

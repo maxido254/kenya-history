@@ -13,7 +13,7 @@
   },
   {
     "id": "imperial-reckoning-the-untold-story-of-britain-s-gulag-in-ke",
-    "title": "Imperial Reckoning: The Untold Story of Britain’s Gulag in Kenya",
+    "title": "Imperial Reckoning: The Untold Story of Britain\u2019s Gulag in Kenya",
     "author": "Caroline Elkins",
     "description": "britains' gulag",
     "topics": [
@@ -23,33 +23,5 @@
     "permission_from": "henry holt",
     "license": "free education distribution",
     "year": 2005
-  },
-  {
-    "id": "epdf-pub-weep-not-child-african-writers",
-    "title": "epdf.pub weep not child african writers",
-    "author": "ngugi wa thiong'o",
-    "description": "",
-    "topics": [
-      "Overview"
-    ],
-    "text": "books/epdf-pub-weep-not-child-african-writers.json",
-    "permission_from": "nggi wa thiong'o",
-    "license": "freee educational purpose",
-    "updated": "2026-11-20T16:22:53.585Z",
-    "year": 1964
-  },
-  {
-    "id": "a-grain-of-wheat-ngugi-wa-thiongo",
-    "title": "a grain of wheat ngugi wa thiongo",
-    "author": "ngugi wa thiong'o",
-    "description": "",
-    "topics": [
-      "Independence and post-independence"
-    ],
-    "text": "books/a-grain-of-wheat-ngugi-wa-thiongo.json",
-    "permission_from": "ngugi wa thiong'o",
-    "license": "freee educational purpose",
-    "updated": "2026-11-21T06:00:50.137Z",
-    "year": 1964
   }
 ]
