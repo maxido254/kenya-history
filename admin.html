@@ -3,64 +3,91 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Add a book · African History</title>
+  <title>Add books · African History</title>
   <meta name="robots" content="noindex">
   <link rel="stylesheet" href="styles.css">
   <style>
-    .admin { max-width: 44rem; margin: 0 auto; padding: 1.25rem; font-family: var(--sans); }
-    .admin h1 { font: 700 1.5rem var(--serif); margin: .2rem 0 .4rem; text-shadow: none; }
+    .admin { max-width: 46rem; margin: 0 auto; padding: 1.25rem; font-family: var(--sans); }
+    .admin h1 { font: 700 1.5rem var(--serif); margin: .2rem 0 .4rem; }
     .admin p, .admin li { line-height: 1.55; }
-    .admin label { display: block; margin: 1rem 0 .3rem; font-weight: 600; font-size: .9rem; }
+    .admin label { display: block; margin: 1rem 0 0; font-weight: 600; font-size: .9rem; }
+    .admin label > input, .admin label > select { display: block; margin-top: .3rem; }
     .admin input[type=text], .admin input[type=number], .admin textarea, .admin select { width: 100%; padding: .55rem; border: 1px solid var(--rule); background: #fff; font: 1rem var(--sans); border-radius: 2px; }
-    .admin textarea { min-height: 14rem; font-family: var(--serif); }
-    .admin .hint { color: var(--muted); font-size: .82rem; margin: .2rem 0 0; }
-    .admin .go { margin-top: 1.4rem; padding: .7rem 1.1rem; background: var(--green); color: #fff; border: 0; font: 600 1rem var(--sans); cursor: pointer; border-radius: 2px; }
-    .admin .go:disabled { opacity: .5; cursor: default; }
+    .admin textarea { min-height: 9rem; font-family: var(--serif); margin-top: .3rem; }
+    .admin .hint { color: var(--muted); font-size: .82rem; margin: .3rem 0 0; font-weight: 400; }
+    .admin .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: 1rem 0; }
+    .admin .btn { padding: .6rem 1rem; border: 1px solid var(--green); background: #fff; color: var(--green); font: 600 .95rem var(--sans); cursor: pointer; border-radius: 2px; }
+    .admin .btn:disabled { opacity: .45; cursor: default; }
+    .admin .go { padding: .75rem 1.2rem; background: var(--green); color: #fff; border: 0; font: 600 1rem var(--sans); cursor: pointer; border-radius: 2px; }
+    .admin .bk { border: 1px solid var(--rule); background: #fffdf7; padding: .2rem 1rem 1.1rem; margin: 1rem 0; }
+    .admin .bk-head { display: flex; justify-content: space-between; align-items: center; margin-top: .6rem; }
+    .admin .bk-head h2 { margin: 0; font: 700 1.1rem var(--serif); }
+    .admin .rm { background: none; border: 0; color: var(--red); cursor: pointer; font: .85rem var(--sans); }
     .admin .out { margin-top: 1.4rem; padding: 1rem; border: 1px solid var(--rule); background: #fff; }
-    .admin .out a { display: inline-block; margin: .3rem .6rem .3rem 0; color: var(--green); font-weight: 600; }
-    .admin .err { color: var(--red); }
-    .admin .steps { background: #fff; border: 1px solid var(--rule); padding: .6rem 1.2rem; }
+    .admin .out a.dl { display: inline-block; margin: .3rem .8rem .3rem 0; color: var(--green); font-weight: 600; }
+    .admin .err { color: var(--red); white-space: pre-line; }
+    .admin .warn { color: #8a5a00; }
+    .admin .steps { background: #fffdf7; border: 1px solid var(--rule); padding: .6rem 1.2rem; }
+    .admin .count { color: var(--muted); font-size: .9rem; }
   </style>
 </head>
 <body>
 <div class="admin">
   <p><a href="./">&larr; Back to the library</a></p>
-  <h1>Add a book</h1>
-  <p>Fill this in, press the button, and you get two files to upload to your GitHub repo. This page cannot publish anything by itself.</p>
+  <h1>Add books</h1>
+  <p>Add up to <b>6 books</b> at a time. You get one zip to upload to your GitHub repo. This page cannot publish anything by itself. Only add books you have permission to share.</p>
 
-  <label for="file">Book text (.txt or .md; PDF also works if you are online)</label>
-  <input id="file" type="file" accept=".txt,.md,.pdf,text/plain">
-  <p class="hint">Or paste the text below. Start each chapter with a line like <b>Chapter 1</b> or <b># Chapter title</b>. Sub-headings can start with <b>##</b>.</p>
-  <textarea id="text" placeholder="Paste the book text here"></textarea>
+  <div class="row">
+    <label style="margin:0">Choose several files at once (.txt, .md, or PDF if you are online)
+      <input id="many" type="file" multiple accept=".txt,.md,.pdf,text/plain">
+    </label>
+  </div>
+  <div class="row">
+    <button id="add" class="btn" type="button">+ Add a book by pasting text</button>
+    <span id="count" class="count"></span>
+  </div>
+  <p class="hint">Start each chapter with a line like <b>Chapter 1</b> or <b># Chapter title</b>. Sub-headings can start with <b>##</b>.</p>
 
-  <label for="title">Title</label><input id="title" type="text">
-  <label for="author">Author</label><input id="author" type="text">
-  <label for="year">Year (optional)</label><input id="year" type="number" min="1000" max="2100">
-  <label for="desc">Short description</label><input id="desc" type="text">
-  <label for="topic">Subject</label>
-  <select id="topic">
-    <option>Overview</option><option>Pre-colonial and early history</option><option>Colonial era</option>
-    <option>Mau Mau</option><option>Independence and post-independence</option>
-    <option>Human rights and transitional justice</option><option>Reference</option>
-  </select>
-  <label for="from">Who gave permission</label><input id="from" type="text" placeholder="Author, publisher or estate">
-  <label for="license">Terms</label><input id="license" type="text" placeholder="For example: Free educational distribution">
-  <p class="hint">The app only shows books that have both of these filled in.</p>
+  <div id="cards"></div>
 
   <button id="make" class="go" type="button">Make the files</button>
   <p id="msg" class="err" role="alert"></p>
 
   <div id="out" class="out" hidden>
     <h2 style="margin-top:0">Your files</h2>
-    <p id="summary"></p>
-    <p><a id="dl-book" href="#">Download the book file</a> <a id="dl-list" href="#">Download books.json</a></p>
+    <div id="summary"></div>
+    <p><a id="dl-zip" class="dl" href="#">Download everything (zip)</a></p>
+    <p class="hint">Or download the files one by one:</p>
+    <p id="single"></p>
     <ol class="steps">
-      <li>On GitHub, open your <b>kenya-history</b> repo, then the <b>books</b> folder, choose Add file, then Upload files, and add the book file.</li>
-      <li>Go back to the top of the repo and upload <b>books.json</b> the same way, replacing the old one.</li>
-      <li>Commit. In a minute or two the book appears in the app for everyone, the next time they open it.</li>
+      <li>Unzip the download on your computer. You get a <b>books</b> folder and <b>books.json</b>.</li>
+      <li>On GitHub, open your <b>kenya-history</b> repo, choose Add file, then Upload files, and drag in the <b>books</b> folder and <b>books.json</b> together. Commit.</li>
+      <li>Wait a minute or two. The books then appear in the app and download to phones on their own.</li>
+      <li>Wait for them to appear before making the next batch, so the list stays complete.</li>
     </ol>
   </div>
 </div>
+
+<template id="card-tpl">
+  <section class="bk">
+    <div class="bk-head"><h2 class="bk-num">Book</h2><button type="button" class="rm">Remove</button></div>
+    <label>Book text (.txt, .md or PDF)
+      <input class="f-file" type="file" accept=".txt,.md,.pdf,text/plain">
+    </label>
+    <label>Or paste the text here
+      <textarea class="f-text" placeholder="Paste the book text here"></textarea>
+    </label>
+    <label>Title<input class="f-title" type="text"></label>
+    <label>Author<input class="f-author" type="text"></label>
+    <label>Year (optional)<input class="f-year" type="number" min="1000" max="2100"></label>
+    <label>Short description<input class="f-desc" type="text"></label>
+    <label>Subject<select class="f-topic"></select></label>
+    <label>Who gave permission<input class="f-from" type="text" placeholder="Author, publisher or estate"></label>
+    <label>Terms<input class="f-license" type="text" placeholder="For example: Free educational distribution"></label>
+    <p class="hint">The app only shows books that have both of these filled in.</p>
+    <p class="warn card-warn"></p>
+  </section>
+</template>
 <script src="admin.js"></script>
 </body>
 </html>

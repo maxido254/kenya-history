@@ -2,7 +2,10 @@
 
 A free reading app for African history, starting with Kenya. Books open and are read inside the app, in chapters, with adjustable text size and a night mode. Every book can be downloaded as a PDF.
 
-## Add a book
+## Add books (up to 6 at a time)
+Open `admin.html` on your live site, add up to six books, press the button, and upload the zip's contents (the `books` folder and `books.json`) to the repo. Wait for the site to republish before making the next batch.
+
+### By hand
 1. Put the book's text in `books/<name>.json`:
 
 ```json

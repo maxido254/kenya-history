@@ -1,18 +1,22 @@
+const MAX = 6;
+const TOPICS = ["Overview", "Pre-colonial and early history", "Colonial era", "Mau Mau",
+  "Independence and post-independence", "Human rights and transitional justice", "Reference"];
 const $ = (id) => document.getElementById(id);
+const cardsEl = $("cards");
 
 function slug(s) {
   return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "book";
 }
 
-// Turn plain text into chapters. A chapter starts at "Chapter ...", "Part ...",
-// "Section ..." or a line beginning with "# ". Lines starting "## " stay as sub-headings.
+// A chapter starts at "Chapter ...", "Part ...", "Section ..." or a line beginning "# ".
+// Lines starting "## " stay as sub-headings inside the chapter.
 function toChapters(raw) {
   const text = raw.replace(/\r\n?/g, "\n");
   const blocks = text.split(/\n\s*\n/).map((b) => b.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
   const chapters = [];
   let cur = null;
-  const isHead = (b) => /^#\s+\S/.test(b) || /^(chapter|part|section)\s+[\w.]+/i.test(b) && b.length < 90;
+  const isHead = (b) => /^#\s+\S/.test(b) || (/^(chapter|part|section)\s+[\w.]+/i.test(b) && b.length < 90);
   for (const b of blocks) {
     if (isHead(b)) {
       cur = { title: b.replace(/^#\s+/, ""), paragraphs: [] };
@@ -41,8 +45,7 @@ async function readPdf(file) {
   let out = "";
   for (let p = 1; p <= pdf.numPages; p++) {
     const content = await (await pdf.getPage(p)).getTextContent();
-    let lastY = null;
-    let line = "";
+    let lastY = null, line = "";
     const lines = [];
     for (const it of content.items) {
       const y = it.transform[5];
@@ -51,7 +54,6 @@ async function readPdf(file) {
       lastY = y;
     }
     if (line.trim()) lines.push({ t: line.trim(), y: lastY });
-    // A bigger gap between lines than usual marks a new paragraph
     const gaps = lines.slice(1).map((l, i) => Math.abs(lines[i].y - l.y)).sort((a, b) => a - b);
     const normal = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 0;
     lines.forEach((l, i) => {
@@ -62,64 +64,173 @@ async function readPdf(file) {
   return out;
 }
 
-$("file").addEventListener("change", async (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  $("msg").textContent = "";
+// ---- Book cards ----------------------------------------------------------
+function cards() { return Array.from(cardsEl.children); }
+
+function refresh() {
+  const list = cards();
+  list.forEach((c, i) => { c.querySelector(".bk-num").textContent = `Book ${i + 1}`; });
+  $("add").disabled = list.length >= MAX;
+  $("count").textContent = `${list.length} of ${MAX} books`;
+  $("make").disabled = list.length === 0;
+}
+
+async function loadFile(card, file) {
+  const msg = card.querySelector(".card-warn");
+  msg.textContent = "";
   try {
-    $("text").value = /\.pdf$/i.test(f.name) ? await readPdf(f) : await f.text();
-    if (!$("title").value) $("title").value = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
-    if (/\.pdf$/i.test(f.name)) $("msg").textContent = "PDF text loaded. Check it below: scanned pages and page numbers may need tidying.";
+    const isPdf = /\.pdf$/i.test(file.name);
+    card.querySelector(".f-text").value = isPdf ? await readPdf(file) : await file.text();
+    const t = card.querySelector(".f-title");
+    if (!t.value) t.value = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+    if (isPdf) msg.textContent = "PDF text loaded. Check it: scanned pages and page numbers may need tidying.";
   } catch (err) {
-    $("msg").textContent = err.message || "That file could not be read.";
+    msg.textContent = err.message || "That file could not be read.";
   }
+}
+
+function addCard() {
+  if (cards().length >= MAX) return null;
+  const card = $("card-tpl").content.firstElementChild.cloneNode(true);
+  const sel = card.querySelector(".f-topic");
+  TOPICS.forEach((t) => { const o = document.createElement("option"); o.textContent = t; sel.appendChild(o); });
+  card.querySelector(".rm").onclick = () => { card.remove(); refresh(); };
+  card.querySelector(".f-file").addEventListener("change", (e) => { if (e.target.files[0]) loadFile(card, e.target.files[0]); });
+  cardsEl.appendChild(card);
+  refresh();
+  return card;
+}
+
+$("add").addEventListener("click", () => addCard());
+
+$("many").addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files);
+  const room = MAX - cards().length;
+  $("msg").textContent = "";
+  if (files.length > room) {
+    $("msg").textContent = `Only ${MAX} books can be added at a time. The first ${room} file${room === 1 ? " was" : "s were"} added.`;
+  }
+  for (const f of files.slice(0, Math.max(room, 0))) {
+    const card = addCard();
+    if (card) await loadFile(card, f);
+  }
+  e.target.value = "";
 });
 
-function download(link, name, data) {
-  link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
-  link.download = name;
+// ---- Zip (store only, no compression) ------------------------------------
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) {
+    crc ^= bytes[i];
+    for (let k = 0; k < 8; k++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }
+
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  const u16 = (v) => Uint8Array.of(v & 255, (v >>> 8) & 255);
+  const u32 = (v) => Uint8Array.of(v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255);
+  const cat = (...a) => { const n = a.reduce((s, x) => s + x.length, 0); const o = new Uint8Array(n); let p = 0; a.forEach((x) => { o.set(x, p); p += x.length; }); return o; };
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const local = cat(u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(0), u16(33), u32(crc), u32(f.data.length), u32(f.data.length), u16(name.length), u16(0), name);
+    parts.push(local, f.data);
+    central.push(cat(u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(33), u32(crc), u32(f.data.length), u32(f.data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), name));
+    offset += local.length + f.data.length;
+  }
+  const cd = cat(...central);
+  const end = cat(u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(cd.length), u32(offset), u16(0));
+  return new Blob([...parts, cd, end], { type: "application/zip" });
+}
+
+// ---- Make the files ------------------------------------------------------
+let urls = [];
+function link(name, blob, cls) {
+  const a = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  urls.push(url);
+  a.href = url; a.download = name; a.textContent = name; if (cls) a.className = cls;
+  return a;
+}
+const jsonBlob = (data) => new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
 
 $("make").addEventListener("click", async () => {
   const msg = $("msg");
   msg.textContent = "";
-  const title = $("title").value.trim();
-  const from = $("from").value.trim();
-  const terms = $("license").value.trim();
-  if (!title) return void (msg.textContent = "Please enter the title.");
-  if (!from || !terms) return void (msg.textContent = "Please say who gave permission and the terms. The app hides books without them.");
-  const chapters = toChapters($("text").value);
-  if (!chapters.length) return void (msg.textContent = "There is no book text yet. Choose a file or paste the text.");
+  const problems = [];
+  const books = [];
+  cards().forEach((c, i) => {
+    const v = (s) => c.querySelector(s).value.trim();
+    const n = `Book ${i + 1}`;
+    const title = v(".f-title"), from = v(".f-from"), terms = v(".f-license");
+    if (!title) problems.push(`${n}: please enter the title.`);
+    if (!from || !terms) problems.push(`${n}: please say who gave permission and the terms. The app hides books without them.`);
+    const chapters = toChapters(c.querySelector(".f-text").value);
+    if (!chapters.length) problems.push(`${n}: there is no book text yet.`);
+    if (title && from && terms && chapters.length) books.push({ n, title, from, terms, chapters, c });
+  });
+  const ids = new Set();
+  books.forEach((b) => {
+    b.id = slug(b.title);
+    if (ids.has(b.id)) problems.push(`${b.n}: another book in this batch has the same title.`);
+    ids.add(b.id);
+  });
+  if (!cards().length) problems.push("Add at least one book.");
+  if (problems.length) { msg.textContent = problems.join("\n"); return; }
 
-  const id = slug(title);
-  const author = $("author").value.trim();
-  const book = { title, author, rights: `Shared with permission from ${from}. ${terms}.`, chapters };
-  const entry = {
-    id, title, author,
-    description: $("desc").value.trim(),
-    topics: [$("topic").value],
-    text: `books/${id}.json`,
-    permission_from: from,
-    license: terms,
-    updated: new Date().toISOString()
-  };
-  const year = parseInt($("year").value, 10);
-  if (year) entry.year = year;
-
-  let list = [];
+  let list;
   try {
     const res = await fetch("books.json", { cache: "no-cache" });
-    if (res.ok) list = await res.json();
+    if (!res.ok) throw new Error();
+    list = await res.json();
   } catch (e) {
-    return void (msg.textContent = "Could not read the current library list. Open this page from your live website, not from a saved file.");
+    msg.textContent = "Could not read the current library list. Open this page from your live website, not from a saved file.";
+    return;
   }
-  const i = list.findIndex((b) => b.id === id);
-  if (i >= 0) list[i] = entry; else list.push(entry);
 
-  download($("dl-book"), `${id}.json`, book);
-  download($("dl-list"), "books.json", list);
-  const words = chapters.reduce((n, c) => n + c.paragraphs.join(" ").split(/\s+/).length, 0);
-  $("summary").textContent = `"${title}": ${chapters.length} chapter${chapters.length === 1 ? "" : "s"}, about ${words.toLocaleString()} words. ${i >= 0 ? "This replaces the existing entry." : "This is a new entry."}`;
+  const files = [];
+  const enc = new TextEncoder();
+  const lines = [];
+  for (const b of books) {
+    const v = (s) => b.c.querySelector(s).value.trim();
+    const author = v(".f-author");
+    const book = { title: b.title, author, rights: `Shared with permission from ${b.from}. ${b.terms}.`, chapters: b.chapters };
+    const entry = {
+      id: b.id, title: b.title, author, description: v(".f-desc"),
+      topics: [b.c.querySelector(".f-topic").value], text: `books/${b.id}.json`,
+      permission_from: b.from, license: b.terms, updated: new Date().toISOString()
+    };
+    const year = parseInt(v(".f-year"), 10);
+    if (year) entry.year = year;
+    const i = list.findIndex((x) => x.id === b.id);
+    if (i >= 0) list[i] = entry; else list.push(entry);
+    files.push({ name: `books/${b.id}.json`, data: enc.encode(JSON.stringify(book, null, 2)), blob: jsonBlob(book) });
+    const words = b.chapters.reduce((n, c) => n + c.paragraphs.join(" ").split(/\s+/).length, 0);
+    let note = i >= 0 ? " Replaces the existing entry." : "";
+    if (b.chapters.length === 1 && words > 15000) note += " Warning: only one chapter was found. Add chapter headings so readers can move around.";
+    lines.push(`${b.n}: "${b.title}" has ${b.chapters.length} chapter${b.chapters.length === 1 ? "" : "s"}, about ${words.toLocaleString()} words.${note}`);
+  }
+  files.push({ name: "books.json", data: enc.encode(JSON.stringify(list, null, 2)), blob: jsonBlob(list) });
+
+  urls.forEach((u) => URL.revokeObjectURL(u));
+  urls = [];
+  const zipLink = $("dl-zip");
+  zipLink.href = URL.createObjectURL(makeZip(files));
+  urls.push(zipLink.href);
+  zipLink.download = "african-history-upload.zip";
+  const single = $("single");
+  single.textContent = "";
+  files.forEach((f) => single.appendChild(link(f.name.replace(/^books\//, ""), f.blob, "dl")));
+  const sum = $("summary");
+  sum.textContent = "";
+  lines.forEach((t) => { const p = document.createElement("p"); p.textContent = t; sum.appendChild(p); });
   $("out").hidden = false;
   $("out").scrollIntoView({ behavior: "smooth" });
 });
+
+addCard();
