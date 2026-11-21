@@ -117,6 +117,23 @@ $("many").addEventListener("change", async (e) => {
   e.target.value = "";
 });
 
+// ---- Cover pictures ------------------------------------------------------
+// Crops to a 2:3 book shape, 400x600, JPEG, so every cover is small and tidy.
+async function coverBytes(file) {
+  const bmp = await createImageBitmap(file);
+  const W = 400, H = 600;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  const s = Math.max(W / bmp.width, H / bmp.height);
+  const w = bmp.width * s, h = bmp.height * s;
+  g.drawImage(bmp, (W - w) / 2, (H - h) / 2, w, h);
+  const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.85));
+  return new Uint8Array(await blob.arrayBuffer());
+}
+const coverFile = (id) => `books/covers/${id}.jpg`;
+
 // ---- Zip (store only, no compression) ------------------------------------
 function crc32(bytes) {
   let crc = 0xffffffff;
@@ -208,10 +225,21 @@ $("make").addEventListener("click", async () => {
     const year = parseInt(v(".f-year"), 10);
     if (year) entry.year = year;
     const i = list.findIndex((x) => x.id === b.id);
+    if (i >= 0 && list[i].cover) entry.cover = list[i].cover;
+    const pic = b.c.querySelector(".f-cover").files[0];
+    let coverNote = "";
+    if (pic) {
+      try {
+        const data = await coverBytes(pic);
+        files.push({ name: coverFile(b.id), data, blob: new Blob([data], { type: "image/jpeg" }) });
+        entry.cover = coverFile(b.id) + "?v=" + Date.now();
+        coverNote = " Cover added.";
+      } catch (e) { coverNote = " The cover picture could not be read, so it was skipped."; }
+    }
     if (i >= 0) list[i] = entry; else list.push(entry);
     files.push({ name: `books/${b.id}.json`, data: enc.encode(JSON.stringify(book, null, 2)), blob: jsonBlob(book) });
     const words = b.chapters.reduce((n, c) => n + c.paragraphs.join(" ").split(/\s+/).length, 0);
-    let note = i >= 0 ? " Replaces the existing entry." : "";
+    let note = (i >= 0 ? " Replaces the existing entry." : "") + coverNote;
     if (b.chapters.length === 1 && words > 15000) note += " Warning: only one chapter was found. Add chapter headings so readers can move around.";
     lines.push(`${b.n}: "${b.title}" has ${b.chapters.length} chapter${b.chapters.length === 1 ? "" : "s"}, about ${words.toLocaleString()} words.${note}`);
   }
@@ -234,6 +262,51 @@ $("make").addEventListener("click", async () => {
 });
 
 addCard();
+
+// ---- Change a cover -----------------------------------------------------
+let covList = [];
+$("loadCov").addEventListener("click", async () => {
+  const msg = $("covMsg");
+  msg.textContent = "";
+  try {
+    const res = await fetch("books.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error();
+    covList = await res.json();
+  } catch (e) {
+    msg.textContent = "Could not read the current library list. Open this page from your live website, not from a saved file.";
+    return;
+  }
+  const sel = $("covBook");
+  sel.textContent = "";
+  covList.forEach((b, i) => { const o = document.createElement("option"); o.value = String(i); o.textContent = b.title || b.id; sel.appendChild(o); });
+  $("covForm").hidden = !covList.length;
+  if (!covList.length) msg.textContent = "The library is empty.";
+});
+
+let covUrl = null;
+$("makeCov").addEventListener("click", async () => {
+  const msg = $("covMsg");
+  msg.textContent = "";
+  const pic = $("covFile").files[0];
+  if (!pic) { msg.textContent = "Choose a picture first."; return; }
+  const b = covList[parseInt($("covBook").value, 10)];
+  let data;
+  try { data = await coverBytes(pic); } catch (e) { msg.textContent = "That picture could not be read. Try a JPG or PNG."; return; }
+  b.cover = coverFile(b.id) + "?v=" + Date.now();
+  const enc = new TextEncoder();
+  const zip = makeZip([
+    { name: coverFile(b.id), data },
+    { name: "books.json", data: enc.encode(JSON.stringify(covList, null, 2)) }
+  ]);
+  if (covUrl) URL.revokeObjectURL(covUrl);
+  covUrl = URL.createObjectURL(zip);
+  const a = $("dl-cov");
+  a.href = covUrl;
+  a.download = "african-history-cover.zip";
+  $("covSummary").textContent = `Cover ready for "${b.title}".`;
+  $("covOut").hidden = false;
+  $("covOut").scrollIntoView({ behavior: "smooth" });
+});
 
 // ---- Remove books --------------------------------------------------------
 let rmBooks = [];
@@ -302,6 +375,17 @@ $("makeRm").addEventListener("click", () => {
       li.textContent = `${b.title}: no book file to delete.`;
     }
     ul.appendChild(li);
+    if (b.cover) {
+      const c = b.cover.split("?")[0];
+      const li2 = document.createElement("li");
+      const l2 = document.createElement("a");
+      l2.href = `https://github.com/${owner}/${repo}/delete/main/${c}`;
+      l2.target = "_blank";
+      l2.rel = "noopener";
+      l2.textContent = `Delete ${c}`;
+      li2.appendChild(l2);
+      ul.appendChild(li2);
+    }
   });
   $("rmOut").hidden = false;
   $("rmOut").scrollIntoView({ behavior: "smooth" });

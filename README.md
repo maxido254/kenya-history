@@ -36,6 +36,9 @@ Open `admin.html` on your live site, add up to six books, press the button, and 
 
 Entries without `text`, `permission_from` and `license` are not shown. Every book is read and downloaded inside the app; the app never sends readers to another website.
 
+### Cover pictures
+On `admin.html`, each new book has an optional cover picture, and the "Change a cover" section adds or replaces one on a book already listed. Covers are cropped to 400x600 and saved as `books/covers/<id>.jpg`; the book's entry gets a `cover` field. Books without a cover show a printed title cover.
+
 ## Logo
 Put a square image named `logo.png` in the repo root and it replaces the default emblem in the header.
 

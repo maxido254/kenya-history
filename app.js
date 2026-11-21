@@ -141,6 +141,7 @@ async function pruneCache() {
     const c = await caches.open("kh-data");
     const keep = new Set(books.map((m) => LIVE + m.text));
     keep.add(LIVE + "books.json");
+    books.forEach((m) => { if (m.cover) keep.add(LIVE + m.cover); });
     for (const req of await c.keys()) {
       if (req.url.startsWith(LIVE + "books/") && !keep.has(req.url)) await c.delete(req);
     }
@@ -161,6 +162,7 @@ async function syncLibrary() {
   try {
     await pruneCache();
     await refreshSaved();
+    for (const m of books) { try { await cacheCover(m); } catch (e) { /* next time */ } }
     const todo = [];
     for (const m of books) {
       let stored = null;
@@ -184,6 +186,46 @@ async function syncLibrary() {
   }
 }
 
+// ---- Book covers ---------------------------------------------------------
+function textCover(m) {
+  const cover = el("div", "cover c" + colourFor(m.title));
+  cover.append(el("h2", "", m.title), el("span", "by", m.author || ""));
+  return cover;
+}
+
+// A saved copy is used when there is one, so covers also show offline
+async function coverSrc(m) {
+  try {
+    const c = await caches.open("kh-data");
+    const hit = await c.match(LIVE + m.cover);
+    if (hit) return URL.createObjectURL(await hit.blob());
+  } catch (e) { /* ignore */ }
+  return BASE + m.cover;
+}
+
+async function cacheCover(m) {
+  if (!m.cover) return;
+  const c = await caches.open("kh-data");
+  if (await c.match(LIVE + m.cover)) return;
+  const res = await fetch(BASE + m.cover);
+  if (res.ok) await c.put(LIVE + m.cover, res);
+}
+
+function makeCover(m) {
+  if (!m.cover) return textCover(m);
+  const cover = el("div", "cover img");
+  const img = document.createElement("img");
+  img.alt = "";
+  img.decoding = "async";
+  img.onerror = () => cover.replaceWith(textCover(m));
+  coverSrc(m).then((u) => {
+    if (u.startsWith("blob:")) img.onload = () => URL.revokeObjectURL(u);
+    img.src = u;
+  });
+  cover.appendChild(img);
+  return cover;
+}
+
 function render() {
   const q = $("search").value.trim().toLowerCase();
   const grid = $("covers");
@@ -195,9 +237,9 @@ function render() {
     if (topic !== "All" && !(m.topics || []).includes(topic)) continue;
     const b = el("button", "book");
     b.type = "button";
-    const cover = el("div", "cover c" + colourFor(m.title));
-    cover.append(el("h2", "", m.title), el("span", "by", m.author || ""));
-    b.append(cover, el("span", "note", noteFor(m)));
+    b.append(makeCover(m));
+    if (m.cover) b.append(el("span", "ttl", m.title));
+    b.append(el("span", "note", noteFor(m)));
     b.onclick = () => openBook(m);
     grid.appendChild(b);
     shown++;
