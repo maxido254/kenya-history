@@ -28,6 +28,9 @@
     .admin .err { color: var(--red); white-space: pre-line; }
     .admin .warn { color: #8a5a00; }
     .admin .steps { background: #fffdf7; border: 1px solid var(--rule); padding: .6rem 1.2rem; }
+    .admin input[type=checkbox] { display: inline-block; width: auto; margin: 0 .55rem 0 0; }
+    .admin .pick { font-weight: 400; font-size: 1rem; padding: .5rem 0; border-bottom: 1px solid var(--rule); margin: 0; }
+    .admin .pick small { color: var(--muted); }
     .admin .count { color: var(--muted); font-size: .9rem; }
   </style>
 </head>
@@ -65,6 +68,26 @@
       <li>Wait a minute or two. The books then appear in the app and download to phones on their own.</li>
       <li>Wait for them to appear before making the next batch, so the list stays complete.</li>
     </ol>
+  </div>
+
+  <hr style="margin:2.4rem 0;border:0;border-top:1px solid var(--rule)">
+  <h1>Remove books</h1>
+  <p>Take books off the library. Phones that already saved them clear them the next time they open the app.</p>
+  <button id="loadList" class="btn" type="button">Load the current library</button>
+  <div id="rmList"></div>
+  <button id="makeRm" class="go" type="button" hidden>Make the removal files</button>
+  <p id="rmMsg" class="err" role="alert"></p>
+
+  <div id="rmOut" class="out" hidden>
+    <h2 style="margin-top:0">Your files</h2>
+    <p id="rmSummary"></p>
+    <p><a id="dl-rm" class="dl" href="#">Download books.json</a></p>
+    <ol class="steps">
+      <li>On GitHub, upload this <b>books.json</b> to the top of your repo, replacing the old one. The books disappear from the app.</li>
+      <li>Then delete each book's file so it is no longer public. Open each link below, scroll down and press <b>Commit changes</b>.</li>
+    </ol>
+    <ul id="rmLinks"></ul>
+    <p class="hint">Deleting a file removes it from the site. GitHub still keeps older versions in the repo's history, so to wipe a book completely you would need to recreate the repo.</p>
   </div>
 </div>
 

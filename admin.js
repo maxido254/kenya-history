@@ -234,3 +234,75 @@ $("make").addEventListener("click", async () => {
 });
 
 addCard();
+
+// ---- Remove books --------------------------------------------------------
+let rmBooks = [];
+let rmUrl = null;
+
+function repoPath() {
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  return m ? { owner: m[1], repo: location.pathname.split("/")[1] || "kenya-history" } : { owner: "maxido254", repo: "kenya-history" };
+}
+
+$("loadList").addEventListener("click", async () => {
+  const msg = $("rmMsg");
+  msg.textContent = "";
+  $("rmOut").hidden = true;
+  try {
+    const res = await fetch("books.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error();
+    rmBooks = await res.json();
+  } catch (e) {
+    msg.textContent = "Could not read the current library list. Open this page from your live website, not from a saved file.";
+    return;
+  }
+  const box = $("rmList");
+  box.textContent = "";
+  if (!rmBooks.length) { box.textContent = "The library is empty."; $("makeRm").hidden = true; return; }
+  rmBooks.forEach((b, i) => {
+    const label = document.createElement("label");
+    label.className = "pick";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = String(i);
+    const small = document.createElement("small");
+    small.textContent = b.author ? "  " + b.author : "";
+    label.append(cb, document.createTextNode(b.title || b.id), small);
+    box.appendChild(label);
+  });
+  $("makeRm").hidden = false;
+});
+
+$("makeRm").addEventListener("click", () => {
+  const msg = $("rmMsg");
+  msg.textContent = "";
+  const picked = Array.from($("rmList").querySelectorAll("input:checked")).map((c) => parseInt(c.value, 10));
+  if (!picked.length) { msg.textContent = "Tick at least one book to remove."; return; }
+  const removed = picked.map((i) => rmBooks[i]);
+  const kept = rmBooks.filter((_, i) => !picked.includes(i));
+  if (rmUrl) URL.revokeObjectURL(rmUrl);
+  rmUrl = URL.createObjectURL(jsonBlob(kept));
+  const a = $("dl-rm");
+  a.href = rmUrl;
+  a.download = "books.json";
+  $("rmSummary").textContent = `Removing ${removed.length} book${removed.length === 1 ? "" : "s"}. ${kept.length} will stay in the library.`;
+  const { owner, repo } = repoPath();
+  const ul = $("rmLinks");
+  ul.textContent = "";
+  removed.forEach((b) => {
+    const li = document.createElement("li");
+    if (b.text) {
+      const l = document.createElement("a");
+      l.href = `https://github.com/${owner}/${repo}/delete/main/${b.text}`;
+      l.target = "_blank";
+      l.rel = "noopener";
+      l.textContent = `Delete ${b.text}`;
+      li.appendChild(l);
+    } else {
+      li.textContent = `${b.title}: no book file to delete.`;
+    }
+    ul.appendChild(li);
+  });
+  $("rmOut").hidden = false;
+  $("rmOut").scrollIntoView({ behavior: "smooth" });
+});
