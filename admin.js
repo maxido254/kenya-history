@@ -263,11 +263,12 @@ $("make").addEventListener("click", async () => {
 
 addCard();
 
-// ---- Change a cover -----------------------------------------------------
+// ---- Book pictures (all books on one list) ------------------------------
 let covList = [];
 $("loadCov").addEventListener("click", async () => {
   const msg = $("covMsg");
   msg.textContent = "";
+  $("covOut").hidden = true;
   try {
     const res = await fetch("books.json", { cache: "no-cache" });
     if (!res.ok) throw new Error();
@@ -276,10 +277,19 @@ $("loadCov").addEventListener("click", async () => {
     msg.textContent = "Could not read the current library list. Open this page from your live website, not from a saved file.";
     return;
   }
-  const sel = $("covBook");
-  sel.textContent = "";
-  covList.forEach((b, i) => { const o = document.createElement("option"); o.value = String(i); o.textContent = b.title || b.id; sel.appendChild(o); });
-  $("covForm").hidden = !covList.length;
+  const box = $("covList");
+  box.textContent = "";
+  covList.forEach((b, i) => {
+    const row = document.createElement("div");
+    row.className = "pick";
+    const t = document.createElement("div");
+    t.textContent = (b.title || b.id) + (b.cover ? "  (has a picture)" : "");
+    const f = document.createElement("input");
+    f.type = "file"; f.accept = "image/*"; f.dataset.i = String(i);
+    row.append(t, f);
+    box.appendChild(row);
+  });
+  $("makeCov").hidden = !covList.length;
   if (!covList.length) msg.textContent = "The library is empty.";
 });
 
@@ -287,23 +297,28 @@ let covUrl = null;
 $("makeCov").addEventListener("click", async () => {
   const msg = $("covMsg");
   msg.textContent = "";
-  const pic = $("covFile").files[0];
-  if (!pic) { msg.textContent = "Choose a picture first."; return; }
-  const b = covList[parseInt($("covBook").value, 10)];
-  let data;
-  try { data = await coverBytes(pic); } catch (e) { msg.textContent = "That picture could not be read. Try a JPG or PNG."; return; }
-  b.cover = coverFile(b.id) + "?v=" + Date.now();
-  const enc = new TextEncoder();
-  const zip = makeZip([
-    { name: coverFile(b.id), data },
-    { name: "books.json", data: enc.encode(JSON.stringify(covList, null, 2)) }
-  ]);
+  const picks = Array.from($("covList").querySelectorAll("input[type=file]")).filter((f) => f.files[0]);
+  if (!picks.length) { msg.textContent = "Choose at least one picture."; return; }
+  const files = [];
+  const done = [];
+  const bad = [];
+  for (const f of picks) {
+    const b = covList[parseInt(f.dataset.i, 10)];
+    try {
+      const data = await coverBytes(f.files[0]);
+      files.push({ name: coverFile(b.id), data });
+      b.cover = coverFile(b.id) + "?v=" + Date.now();
+      done.push(b.title || b.id);
+    } catch (e) { bad.push(b.title || b.id); }
+  }
+  if (!files.length) { msg.textContent = "Those pictures could not be read. Try JPG or PNG files."; return; }
+  files.push({ name: "books.json", data: new TextEncoder().encode(JSON.stringify(covList, null, 2)) });
   if (covUrl) URL.revokeObjectURL(covUrl);
-  covUrl = URL.createObjectURL(zip);
+  covUrl = URL.createObjectURL(makeZip(files));
   const a = $("dl-cov");
   a.href = covUrl;
-  a.download = "african-history-cover.zip";
-  $("covSummary").textContent = `Cover ready for "${b.title}".`;
+  a.download = "african-history-pictures.zip";
+  $("covSummary").textContent = `Pictures ready for ${done.length} book${done.length === 1 ? "" : "s"}: ${done.join(", ")}.` + (bad.length ? ` Could not read: ${bad.join(", ")}.` : "");
   $("covOut").hidden = false;
   $("covOut").scrollIntoView({ behavior: "smooth" });
 });
