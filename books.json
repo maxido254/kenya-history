@@ -39,20 +39,6 @@
     "year": 1964
   },
   {
-    "id": "a-grain-of-wheat",
-    "title": "a grain of wheat",
-    "author": "ngugi wa thiong'o",
-    "description": "",
-    "topics": [
-      "Overview"
-    ],
-    "text": "books/a-grain-of-wheat.json",
-    "permission_from": "ngugi wa thiong'o",
-    "license": "freee educational purpose",
-    "updated": "2026-11-20T16:25:50.841Z",
-    "year": 1964
-  },
-  {
     "id": "a-grain-of-wheat-ngugi-wa-thiongo",
     "title": "a grain of wheat ngugi wa thiongo",
     "author": "ngugi wa thiong'o",
