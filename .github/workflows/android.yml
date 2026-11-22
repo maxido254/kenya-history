@@ -54,19 +54,39 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
+
+      - name: Sign the release APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          IN="$(ls android/app/build/outputs/apk/release/*.apk | head -1)"
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            A="$KEY_ALIAS"; SP="$KEYSTORE_PASSWORD"; KP="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+          else
+            echo "::warning::No signing secrets set: using a one-off key. Add KEYSTORE_BASE64, KEYSTORE_PASSWORD and KEY_ALIAS to the repo secrets so updates install over older versions."
+            SP=changeit1; KP=changeit1; A=app
+            keytool -genkeypair -keystore "$RUNNER_TEMP/release.jks" -storepass "$SP" -keypass "$KP" -alias "$A" -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=App, O=Maxido Entertainment"
+          fi
+          "$BT/zipalign" -f -p 4 "$IN" "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$A" --ks-pass "pass:$SP" --key-pass "pass:$KP" --out "African-History.apk" "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" verify "African-History.apk"
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         with:
           name: kenya-history-android-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: African-History.apk
 
       - name: Publish the APK as a release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk African-History.apk
           gh release create "android-${{ github.run_number }}" African-History.apk \
             --title "African History app (Android) v${{ github.run_number }}" \
             --notes "Install: download African-History.apk on your phone, open it and allow installing from this source. Uninstall any older copy first. Books and covers update by themselves when the phone has internet."
