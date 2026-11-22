@@ -3,6 +3,9 @@ name: Build Android app
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,3 +61,12 @@ jobs:
         with:
           name: kenya-history-android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish the APK as a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk African-History.apk
+          gh release create "android-${{ github.run_number }}" African-History.apk \
+            --title "African History app (Android) v${{ github.run_number }}" \
+            --notes "Install: download African-History.apk on your phone, open it and allow installing from this source. Uninstall any older copy first. Books and covers update by themselves when the phone has internet."
